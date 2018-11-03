@@ -1,0 +1,23 @@
+{
+  "name": "load-trello-from-file",
+  "version": "1.0.0",
+  "description": "it is concept test to load data from file to trello",
+  "main": "script.js",
+  "dependencies": {
+    "dotenv": "^6.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sxcamacho/load-trello-from-file.git"
+  },
+  "author": "Sebastian Camacho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sxcamacho/load-trello-from-file/issues"
+  },
+  "homepage": "https://github.com/sxcamacho/load-trello-from-file#readme"
+}
