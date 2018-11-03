@@ -1,20 +1,17 @@
-const config = require("./config.js");
-const account = require("./account.js");
-const boards = require("./boards.js");
-const albums = require("./albums.js");
 const trello = require("./lib/trello.js");
+const app = require("./app.js");
 
-const boardName = "Bob Dylan";
 let boardId = undefined;
-// albums.loadAlbums(config.FILE_PATH).then(data => {
-//     console.log(data);
-// });
+let albums = [];
 
-console.log("initializing...");
-Promise.all([account.getMe(), boards.deleteBoardsWithName(boardName)]).then(
-    () => {
-        boards.createBoard(boardName).then(data => {
-            boardId = data;
+app.initialize()
+    .then(data => {
+        boardId = data;
+        app.getAlbumsFromFile().then(data => {
+            albums = data;
         });
-    }
-);
+    })
+    .catch(error => {
+        console.error(error);
+        process.exit(0);
+    });
