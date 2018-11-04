@@ -1,17 +1,17 @@
 const trello = require("./lib/trello.js");
 const app = require("./app.js");
 
-let boardId = undefined;
-let albums = [];
-
 app.initialize()
-    .then(data => {
-        boardId = data;
+    .then(boardId => {
         app.getAlbumsFromFile().then(data => {
-            albums = data;
+            app.createAlbums(boardId, data);
+            //     .then(data => {})
+            //     .catch(error => {
+            //         console.error(error);
+            //     });
         });
     })
     .catch(error => {
         console.error(error);
-        process.exit(0);
+        process.exit(1);
     });
