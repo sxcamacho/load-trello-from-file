@@ -1,7 +1,8 @@
-const trello = require("./lib/trello.js");
 const config = require("./config.js");
 const fs = require("fs");
 const rl = require("readline");
+const trello = require("./lib/trello.js");
+const spotify = require("./lib/spotify.js");
 
 var self = (module.exports = {
     initialize: () => {
@@ -99,6 +100,33 @@ var self = (module.exports = {
                                 console.error(error);
                             });
                     });
+                });
+        });
+    },
+    getCoverAlbums: () => {
+        return new Promise((resolve, reject) => {
+            spotify
+                .getToken()
+                .then(() => {
+                    spotify
+                        .getArtist("Bob Dylan")
+                        .then(artistId => {
+                            spotify.getAlbums(artistId).then(albums => {
+                                let coverAlbums = albums.map(album => {
+                                    return {
+                                        name: album.name,
+                                        image: album.images[0].url
+                                    };
+                                });
+                                resolve(coverAlbums);
+                            });
+                        })
+                        .catch(error => {
+                            reject(error);
+                        });
+                })
+                .catch(error => {
+                    reject(error);
                 });
         });
     }
