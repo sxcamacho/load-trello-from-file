@@ -5,7 +5,7 @@ const trello = require("./lib/trello.js");
 const spotify = require("./lib/spotify.js");
 
 var self = (module.exports = {
-    initialize: () => {
+    initializeTrello: () => {
         console.log("initializing...");
         return new Promise((resolve, reject) => {
             trello
@@ -71,7 +71,7 @@ var self = (module.exports = {
             return a.year - b.year;
         });
     },
-    createAlbums: (boardId, albums) => {
+    createAlbums: (boardId, covers, albums) => {
         let decades = [];
         albums.map(album => {
             if (!decades.includes(album.decade)) {
@@ -91,10 +91,17 @@ var self = (module.exports = {
                         trello
                             .createCard(listId, albumName, index + 1)
                             .then(cardId => {
-                                trello.addCoverToCard(
-                                    cardId,
-                                    "https://i.scdn.co/image/b414091165ea0f4172089c2fc67bb35aa37cfc55"
+                                console.log("Album: " + albumName);
+                                coversFiltered = covers.filter(
+                                    cover => cover.name === album.title
                                 );
+                                if (coversFiltered.length > 0) {
+                                    console.log("ADDED ******************");
+                                    trello.addCoverToCard(
+                                        cardId,
+                                        coversFiltered[0].image
+                                    );
+                                }
                             })
                             .catch(error => {
                                 console.error(error);
