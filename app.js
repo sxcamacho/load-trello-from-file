@@ -4,48 +4,68 @@ const rl = require("readline");
 const trello = require("./lib/trello.js");
 const spotify = require("./lib/spotify.js");
 
-function similarity(s1, s2) {
-    var longer = s1;
-    var shorter = s2;
-    if (s1.length < s2.length) {
-        longer = s2;
-        shorter = s1;
-    }
-    var longerLength = longer.length;
-    if (longerLength == 0) {
-        return 1.0;
-    }
-    return (
-        (longerLength - editDistance(longer, shorter)) /
-        parseFloat(longerLength)
-    );
-}
+getCover = (covers, album) => {
+    similarity = (s1, s2) => {
+        var longer = s1;
+        var shorter = s2;
+        if (s1.length < s2.length) {
+            longer = s2;
+            shorter = s1;
+        }
+        var longerLength = longer.length;
+        if (longerLength == 0) {
+            return 1.0;
+        }
+        return (
+            (longerLength - editDistance(longer, shorter)) /
+            parseFloat(longerLength)
+        );
+    };
 
-function editDistance(s1, s2) {
-    s1 = s1.toLowerCase();
-    s2 = s2.toLowerCase();
+    editDistance = (s1, s2) => {
+        s1 = s1.toLowerCase();
+        s2 = s2.toLowerCase();
 
-    var costs = new Array();
-    for (var i = 0; i <= s1.length; i++) {
-        var lastValue = i;
-        for (var j = 0; j <= s2.length; j++) {
-            if (i == 0) costs[j] = j;
-            else {
-                if (j > 0) {
-                    var newValue = costs[j - 1];
-                    if (s1.charAt(i - 1) != s2.charAt(j - 1))
-                        newValue =
-                            Math.min(Math.min(newValue, lastValue), costs[j]) +
-                            1;
-                    costs[j - 1] = lastValue;
-                    lastValue = newValue;
+        var costs = new Array();
+        for (var i = 0; i <= s1.length; i++) {
+            var lastValue = i;
+            for (var j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        var newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue =
+                                Math.min(
+                                    Math.min(newValue, lastValue),
+                                    costs[j]
+                                ) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
                 }
             }
+            if (i > 0) costs[s2.length] = lastValue;
         }
-        if (i > 0) costs[s2.length] = lastValue;
+        return costs[s2.length];
+    };
+
+    let coversFiltered = covers.filter(cover => cover.name === album.title);
+    if (coversFiltered.length === 0) {
+        coversFiltered = covers.filter(
+            cover =>
+                cover.year === album.year &&
+                cover.name.substr(0, 3) === album.title.substr(0, 3)
+        );
     }
-    return costs[s2.length];
-}
+    if (coversFiltered.length === 0) {
+        coversFiltered = covers.filter(
+            cover => similarity(cover.name, album.title) > 0.6
+        );
+    }
+
+    return coversFiltered.length > 0 ? coversFiltered[0].image : null;
+};
 
 var self = (module.exports = {
     initializeTrello: () => {
@@ -123,50 +143,32 @@ var self = (module.exports = {
         });
         decades = decades.sort((a, b) => a > b);
         decades.map((decade, index) => {
-            trello
-                .createList(boardId, decade.toString(), index + 1)
-                .then(listId => {
-                    list = self.sortAlbums(
-                        albums.filter(album => album.decade === decade)
-                    );
-                    list.map((album, index) => {
-                        let albumName = `${album.year} ${album.title}`;
-                        trello
-                            .createCard(listId, albumName, index + 1)
-                            .then(cardId => {
-                                coversFiltered = covers.filter(
-                                    cover => cover.name === album.title
-                                );
-                                if (coversFiltered.length === 0) {
-                                    coversFiltered = covers.filter(
-                                        cover =>
-                                            cover.year === album.year &&
-                                            cover.name.substr(0, 3) ===
-                                                album.title.substr(0, 3)
-                                    );
-                                }
-                                if (coversFiltered.length === 0) {
-                                    coversFiltered = covers.filter(
-                                        cover =>
-                                            similarity(
-                                                cover.name,
-                                                album.title
-                                            ) > 0.6
-                                    );
-                                }
-
-                                if (coversFiltered.length > 0) {
-                                    trello.addCoverToCard(
-                                        cardId,
-                                        coversFiltered[0].image
-                                    );
-                                }
-                            })
-                            .catch(error => {
-                                console.error(error);
-                            });
+            setTimeout(() => {
+                trello
+                    .createList(boardId, decade.toString(), index + 1)
+                    .then(listId => {
+                        list = self.sortAlbums(
+                            albums.filter(album => album.decade === decade)
+                        );
+                        list.map((album, index) => {
+                            let albumName = `${album.year} ${album.title}`;
+                            trello
+                                .createCard(listId, albumName, index + 1)
+                                .then(cardId => {
+                                    let coverImage = getCover(covers, album);
+                                    if (coverImage) {
+                                        trello.addCoverToCard(
+                                            cardId,
+                                            coverImage
+                                        );
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                });
+                        });
                     });
-                });
+            }, 1000);
         });
     },
     getCoverAlbums: () => {
