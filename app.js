@@ -169,7 +169,7 @@ var self = (module.exports = {
                                 });
                         });
                     });
-            }, 1000);
+            }, 3000);
         });
     },
     getCoverAlbums: () => {
