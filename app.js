@@ -56,10 +56,10 @@ var self = (module.exports = {
                 .then(data => {
                     console.log(`connected to ${data.name}'s trello account`);
                     trello
-                        .deleteBoardsWithName(config.BOARD_NAME)
+                        .deleteBoardsWithName(config.ARTIST_NAME)
                         .then(() => {
                             trello
-                                .createBoard(config.BOARD_NAME)
+                                .createBoard(config.ARTIST_NAME)
                                 .then(data => {
                                     resolve(data);
                                 })
@@ -175,7 +175,7 @@ var self = (module.exports = {
                 .getToken()
                 .then(() => {
                     spotify
-                        .getArtist("Bob Dylan")
+                        .getArtist(config.ARTIST_NAME)
                         .then(artistId => {
                             spotify.getAlbums(artistId).then(albums => {
                                 //console.log(albums[0]);
