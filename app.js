@@ -143,6 +143,7 @@ var self = (module.exports = {
         });
         decades = decades.sort((a, b) => a > b);
         decades.map((decade, index) => {
+            // this timeout is to prevent the trello rate limit error
             setTimeout(() => {
                 trello
                     .createList(boardId, decade.toString(), index + 1)
