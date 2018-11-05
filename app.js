@@ -4,6 +4,49 @@ const rl = require("readline");
 const trello = require("./lib/trello.js");
 const spotify = require("./lib/spotify.js");
 
+function similarity(s1, s2) {
+    var longer = s1;
+    var shorter = s2;
+    if (s1.length < s2.length) {
+        longer = s2;
+        shorter = s1;
+    }
+    var longerLength = longer.length;
+    if (longerLength == 0) {
+        return 1.0;
+    }
+    return (
+        (longerLength - editDistance(longer, shorter)) /
+        parseFloat(longerLength)
+    );
+}
+
+function editDistance(s1, s2) {
+    s1 = s1.toLowerCase();
+    s2 = s2.toLowerCase();
+
+    var costs = new Array();
+    for (var i = 0; i <= s1.length; i++) {
+        var lastValue = i;
+        for (var j = 0; j <= s2.length; j++) {
+            if (i == 0) costs[j] = j;
+            else {
+                if (j > 0) {
+                    var newValue = costs[j - 1];
+                    if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                        newValue =
+                            Math.min(Math.min(newValue, lastValue), costs[j]) +
+                            1;
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+            }
+        }
+        if (i > 0) costs[s2.length] = lastValue;
+    }
+    return costs[s2.length];
+}
+
 var self = (module.exports = {
     initializeTrello: () => {
         console.log("initializing...");
@@ -91,12 +134,28 @@ var self = (module.exports = {
                         trello
                             .createCard(listId, albumName, index + 1)
                             .then(cardId => {
-                                console.log("Album: " + albumName);
                                 coversFiltered = covers.filter(
                                     cover => cover.name === album.title
                                 );
+                                if (coversFiltered.length === 0) {
+                                    coversFiltered = covers.filter(
+                                        cover =>
+                                            cover.year === album.year &&
+                                            cover.name.substr(0, 3) ===
+                                                album.title.substr(0, 3)
+                                    );
+                                }
+                                if (coversFiltered.length === 0) {
+                                    coversFiltered = covers.filter(
+                                        cover =>
+                                            similarity(
+                                                cover.name,
+                                                album.title
+                                            ) > 0.6
+                                    );
+                                }
+
                                 if (coversFiltered.length > 0) {
-                                    console.log("ADDED ******************");
                                     trello.addCoverToCard(
                                         cardId,
                                         coversFiltered[0].image
@@ -119,8 +178,13 @@ var self = (module.exports = {
                         .getArtist("Bob Dylan")
                         .then(artistId => {
                             spotify.getAlbums(artistId).then(albums => {
+                                //console.log(albums[0]);
                                 let coverAlbums = albums.map(album => {
+                                    let year = parseInt(
+                                        album.release_date.substr(0, 4)
+                                    );
                                     return {
+                                        year,
                                         name: album.name,
                                         image: album.images[0].url
                                     };
