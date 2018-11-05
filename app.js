@@ -145,6 +145,7 @@ var self = (module.exports = {
         decades.map((decade, index) => {
             // this timeout is to prevent the trello rate limit error
             setTimeout(() => {
+                console.log(`***** creating albums for ${decade.toString()}`);
                 trello
                     .createList(boardId, decade.toString(), index + 1)
                     .then(listId => {
@@ -169,7 +170,7 @@ var self = (module.exports = {
                                 });
                         });
                     });
-            }, 3000);
+            }, index * 10000);
         });
     },
     getCoverAlbums: () => {
