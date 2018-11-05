@@ -8,15 +8,21 @@ Using Spotify the album cover is attached to the card.
 
 ## Installation
 
+```bash
 npm install
+```
 
 It's needed create the .env file with the following content in the root directory.
 
+```bash
 TRELLO_KEY=xxxxxx
 TRELLO_TOKEN=xxxxxxxxx
 SPOTIFY_CLIENT_ID=xxxxxxxxxxxxxxxxxx
 SPOTIFY_CLIENT_SECRET=xxxxxxxxxxxxxxxxx
+```
 
 ## Usage
 
+```bash
 node script.js
+```
